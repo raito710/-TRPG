@@ -13,6 +13,9 @@ Route::post('/characters/{characterId}/items/{itemId}', [CharController::class, 
 Route::delete('/characters/{characterId}/items/{itemId}', [CharController::class, 'deleteItem'])->name('characters.items.delete');
 Route::put('/characters/{characterId}/items/{itemId}', [CharController::class, 'updateItem'])->name('characters.items.update');
 Route::post('/characters', [CharController::class, 'store'])->name('characters.store');
+Route::get('/characters/export', [CharController::class, 'exportCharacters']);
+
+
 Route::get('/items', [ItemController::class, 'index'])->name('items');
 // アイテム作成ページへのルート
 Route::get('/items/create', [ItemController::class, 'create']);

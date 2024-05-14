@@ -79,4 +79,10 @@ class CharController extends Controller
     
         return redirect('/characters')->with('success', 'キャラクターが作成されました。');
     }
+    public function exportCharacters()
+    {
+        $characters = Character::all(); // キャラクターデータを取得する（適宜、クエリを追加してください）
+    
+        return response()->json($characters);
+    }
 }

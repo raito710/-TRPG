@@ -79,6 +79,8 @@
                         <img src="img/IMG_4421.jpeg" alt="Character Image">
                         <div class="character-details">
                             <p><strong>Character:</strong> {{ $character->charaname }}</p>
+                            <p><strong>sex:</strong> {{ $character->sex }}</p>
+                            <p><strong>age:</strong> {{ $character->age }}</p>
                             <p><strong>Jobs:</strong></p>
                             <ul>
                                 @foreach ($character->jobs as $job)
@@ -136,9 +138,8 @@
     <div class="button-container">
         <button type="button" onclick="openModal()">ユーザー登録</button>
         <button type="button" onclick="openloginModal()">ログイン</button> <!-- ボタン２がログインフォームを表示するように変更 -->
-       
         <button type="button" onclick="openCreateCharacterModal()">キャラクター作成</button>
-        <button type="button">ボタン4</button>
+        <button type="button" onclick="downloadJson()">JSONダウンロード</button>
         <button type="button">ボタン5</button>
     </div>
 </div>
@@ -255,5 +256,24 @@
     function closeCreateCharacterModal() {
         document.getElementById('createCharacterModal').style.display = 'none';
     }
+
+    function downloadJson() {
+        fetch('/characters/export')
+        .then(response => response.json()) // JSONレスポンスをパース
+        .then(jsonData => {
+            const jsonString = JSON.stringify(jsonData); // JSONデータを文字列に変換
+            const blob = new Blob([jsonString], { type: 'application/json' }); // Blobオブジェクトに変換
+            const url = URL.createObjectURL(blob); // BlobオブジェクトをURLに変換
+
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'characters.json'; // ダウンロード時のファイル名を設定
+            document.body.appendChild(a);
+            a.click(); // リンクをクリックしてダウンロードを開始
+            window.URL.revokeObjectURL(url); // 使用したURLを解放
+        })
+        .catch(error => console.error('Error downloading the file:', error));
+}
 </script>
 </html>
