@@ -17,4 +17,9 @@ class Job extends Model
     {
         return $this->belongsToMany(Character::class, 'charas_job', 'job_id', 'character_id');
     }
+     // Define the relationship with skills
+     public function skills()
+     {
+         return $this->belongsToMany(Skill::class, 'job_skill', 'job_id', 'skill_id');
+     }
 }

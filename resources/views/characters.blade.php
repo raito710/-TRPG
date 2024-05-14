@@ -23,139 +23,237 @@
             margin-bottom: 20px;
             color: #990;
         }
-        form {
-            margin-bottom: 20px;
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
         }
-        label {
-            font-weight: bold;
-            color: #000;
-        }
-        select, button {
-            font-size: 16px;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            margin-top: 10px;
-            background-color: #fff;
-            color: #000;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        ul li {
+        .character-item {
             background-color: #fff;
             padding: 20px;
-            margin-bottom: 20px;
             border-radius: 10px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
         }
-        ul li strong {
-            font-size: 20px;
-            color: #000;
+        .character-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
         }
-        ul li p {
-            font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-        ul li ul {
+        .character-details {
             margin-top: 10px;
         }
-        ul li ul li {
-            background-color: #f0f0f0;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
+        .character-details p {
+            margin: 5px 0;
         }
-        form button {
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .button-container button {
             cursor: pointer;
             background-color: #4caf50;
             color: #fff;
             font-weight: bold;
+            margin: 0 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
         }
-        form button:hover {
+        .button-container button:hover {
             background-color: #45a049;
-        }
-        .button-container {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Character List</h1>
+<div class="container">
+    <h1>Character List</h1>
+    @if(session('user'))
+        <p>ログイン中: {{ session('user')->name }}</p>
+        <!-- キャラクター一覧 -->
+        <div class="character-grid">
+            @foreach ($characters as $character)
+                @if ($character->user_id == session('user')->id)
+                    <div class="character-item">
+                        <img src="img/IMG_4421.jpeg" alt="Character Image">
+                        <div class="character-details">
+                            <p><strong>Character:</strong> {{ $character->charaname }}</p>
+                            <p><strong>Jobs:</strong></p>
+                            <ul>
+                                @foreach ($character->jobs as $job)
+                                    <li>
+                                        {{ $job->name }}
+                                        <ul>
+                                            <strong>Skills:</strong>
+                                            @foreach ($job->skills as $skill)
+                                                <li>{{ $skill->skillname }} </li>
+                                            @endforeach
+                                        </ul>
+                                    </li>
+                                @endforeach
+                            </ul>
+                            <p><strong>Items:</strong></p>
+                            <ul>
+                                @foreach ($character->items as $item)
+                                    <li>
+                                        <strong>{{ $item->name }}</strong>
+                                        @if ($item->itemtypes)
+                                            <strong>{{ $item->itemtypes->type }}</strong>
+                                        @else
+                                            <strong>未定義のタイプ</strong>
+                                        @endif
 
-        <!-- ボタンのコンテナ -->
-        <div class="button-container">
-            <button type="button">ボタン1</button>
-            <button type="button">ボタン2</button>
-            <button type="button">ボタン3</button>
-            <button type="button">ボタン4</button>
-            <button type="button">ボタン5</button>
+                                        <form action="{{ route('characters.items.store', ['characterId' => $character->id, 'itemId' => $item->id]) }}" method="POST">
+                                            @csrf
+                                            <button type="submit">追加</button>
+                                        </form>
+
+                                        <form action="{{ route('characters.items.update', ['characterId' => $character->id, 'itemId' => $item->id]) }}" method="POST">
+                                            @csrf
+                                            @method('PUT')
+                                            <button type="submit">更新</button>
+                                        </form>
+
+                                        <form action="{{ route('characters.items.delete', ['characterId' => $character->id, 'itemId' => $item->id]) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit">削除</button>
+                                        </form>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                @endif
+            @endforeach
         </div>
+    @else
+        <p>ログインしていません。</p>
+    @endif
 
-        <form>
-            <label for="items">アイテムを選択：</label>
-            <select id="items" name="items">
-                <option value="">アイテムを選択してください</option>
-                @foreach ($characters as $character)
-                    @foreach ($character->items as $item)
+    <!-- ボタンのコンテナ -->
+    <div class="button-container">
+        <button type="button" onclick="openModal()">ユーザー登録</button>
+        <button type="button" onclick="openloginModal()">ログイン</button> <!-- ボタン２がログインフォームを表示するように変更 -->
+       
+        <button type="button" onclick="openCreateCharacterModal()">キャラクター作成</button>
+        <button type="button">ボタン4</button>
+        <button type="button">ボタン5</button>
+    </div>
+</div>
+</body>
+<!-- モーダルウィンドウの追加 -->
+<div id="loginmodal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:20px; border-radius:10px; width:300px;">
+        <h2>ログイン</h2>
+        <form action="/login" method="post">
+            @csrf
+            <div>
+                <label>メールアドレス:</label>
+                <input type="email" name="email" required>
+            </div>
+            <div>
+                <label>パスワード:</label>
+                <input type="password" name="password" required>
+            </div>
+            <button type="submit">ログイン</button>
+        </form>
+        <button onclick="closeloginModal()">閉じる</button>
+    </div>
+</div>
+
+<!-- モーダルウィンドウの追加 -->
+<div id="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:20px; border-radius:10px; width:300px;">
+        <h2>ユーザー登録</h2>
+        <form action="/register" method="post">
+            @csrf
+            <div>
+                <label>ユーザー名:</label>
+                <input type="text" name="username" required>
+            </div>
+            <div>
+                <label>メールアドレス:</label>
+                <input type="email" name="email" required>
+            </div>
+            <div>
+                <label>パスワード:</label>
+                <input type="password" name="password" required>
+            </div>
+            <button type="submit">登録</button>
+        </form>
+        <button onclick="closeModal()">閉じる</button>
+    </div>
+</div>
+<!-- モーダルウィンドウの追加 -->
+<div id="createCharacterModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:20px; border-radius:10px; width:300px;">
+        <h2>キャラクター作成</h2>
+        <form id="createCharacterForm" method="POST" action="{{ route('characters.store') }}">
+            @csrf
+            <input type="hidden" name="user_id" value="{{ auth()->check() ? auth()->user()->id : '' }}">
+
+            <div>
+                <label>キャラクター名:</label>
+                <input type="text" name="charaname" required>
+            </div>
+            <div>
+                <label>性別:</label>
+                <input type="text" name="sex" required>
+            </div>
+            <div>
+                <label>年齢:</label>
+                <input type="text" name="age" required>
+            </div>
+            <div>
+                <label>ジョブ:</label>
+                <select name="job_id" required>
+                    <option value="">選択してください</option>
+                    @foreach ($jobs as $job)
+                        <option value="{{ $job->id }}">{{ $job->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label>アイテム:</label>
+                <select name="item_id" required>
+                    <option value="">選択してください</option>
+                    @foreach ($items as $item)
                         <option value="{{ $item->id }}">{{ $item->name }}</option>
                     @endforeach
-                @endforeach
-            </select>
+                </select>
+            </div>
+            
+            <button type="submit">作成</button>
         </form>
-        
-        <!-- キャラクター一覧 -->
-        <ul>
-            @foreach ($characters as $character)
-                <li>
-                    <p>character:</p>
-                    <strong>{{ $character->charaname }}</strong>
-                    <!-- ここに画像を追加 -->
-                    <img src="img/IMG_4421.jpeg" alt="Character Image" style="width: 100%; max-width: 90px; height: auto;">
-
-                    <p>Jobs:</p>
-                    <ul>
-                        @foreach ($character->jobs as $job)
-                            <li>{{ $job->name }}</li>
-                        @endforeach
-                    </ul>
-                    <p>Items:</p>
-                    <ul>
-                        @foreach ($character->items as $item)
-                            <li>
-                                <strong>{{ $item->name }}</strong>
-                                @if ($item->itemtypes)
-                                    <strong>{{ $item->itemtypes->type }}</strong>
-                                @else
-                                    <strong>未定義のタイプ</strong>
-                                @endif
-
-                                <form action="{{ route('characters.items.store', ['characterId' => $character->id, 'itemId' => $item->id]) }}" method="POST">
-                                    @csrf
-                                    <button type="submit">追加</button>
-                                </form>
-
-                                <form action="{{ route('characters.items.update', ['characterId' => $character->id, 'itemId' => $item->id]) }}" method="POST">
-                                    @csrf
-                                    @method('PUT')
-                                    <button type="submit">更新</button>
-                                </form>
-
-                                <form action="{{ route('characters.items.delete', ['characterId' => $character->id, 'itemId' => $item->id]) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit">削除</button>
-                                </form>
-                            </li>
-                        @endforeach
-                    </ul>
-                </li>
-            @endforeach
-        </ul>
+        <button onclick="closeCreateCharacterModal()">閉じる</button>
     </div>
-</body>
+</div>
+
+
+
+<script>
+    function openModal() {
+        document.getElementById('modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('modal').style.display = 'none';
+    }
+    function openloginModal() {
+        document.getElementById('loginmodal').style.display = 'flex';
+    }
+
+    function closeloginModal() {
+        document.getElementById('loginmodal').style.display = 'none';
+    }
+    function openCreateCharacterModal() {
+        document.getElementById('createCharacterModal').style.display = 'flex';
+    }
+
+    function closeCreateCharacterModal() {
+        document.getElementById('createCharacterModal').style.display = 'none';
+    }
+</script>
 </html>
